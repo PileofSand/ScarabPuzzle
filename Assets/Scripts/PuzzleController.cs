@@ -1,10 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 public class PuzzleController : MonoBehaviour
 {
     [SerializeField] private List<VertexController> vertexControllers;
     [SerializeField] private List<EdgeController> edgeControllers;
+    [SerializeField] private Transform edgeParent;
 
     public Graph Graph { get; private set; }
     public Path CurrentPath { get; private set; }
@@ -19,7 +21,7 @@ public class PuzzleController : MonoBehaviour
             GameObject edgeInstance = Instantiate(edgePrefab);
             EdgeController edgeController = edgeInstance.GetComponent<EdgeController>();
             edgeController.Edge = edge;
-            edgeController.transform.parent = transform;
+            edgeController.transform.parent = edgeParent;
             edgeControllers.Add(edgeController);
             // Set edgeInstance position and rotation based on connected vertices.
             // ...
@@ -76,6 +78,20 @@ public class PuzzleController : MonoBehaviour
         }
     }
 
+    private void Update()
+    {
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            ReloadScene();
+        }
+    }
+
+    public void ReloadScene()
+    {
+        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
+        SceneManager.LoadScene(currentSceneIndex);
+    }
+
     public void DeselectVertex()
     {
         if (selectedVertexController != null)
@@ -104,6 +120,6 @@ public class PuzzleController : MonoBehaviour
 
     private bool IsPuzzleSolved()
     {
-        return CurrentPath.Edges.Count == Graph.Edges.Count;
+        return CurrentPath.Edges.Count == Graph.Edges.Count - 1;
     }
 }

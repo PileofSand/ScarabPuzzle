@@ -34,7 +34,7 @@ public class PuzzleController : MonoBehaviour
         for (int i = 0; i < vertexControllers.Count; i++)
         {
             VertexController vertexController = vertexControllers[i];
-            vertexController.Initialize(i);
+            vertexController.Initialize();
             Graph.AddVertex(vertexController.Vertex);
         }
 
@@ -43,7 +43,6 @@ public class PuzzleController : MonoBehaviour
 
     private void Start()
     {
-        // ...
         Graph.GenerateEdges(vertexControllers);
         CreateEdgeControllers();
     }

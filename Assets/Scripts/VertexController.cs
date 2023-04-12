@@ -18,18 +18,9 @@ public class VertexController : MonoBehaviour
         meshRenderer = GetComponentInChildren<MeshRenderer>();
     }
 
-    private void OnMouseDown()
+    public void Initialize()
     {
-        PuzzleController puzzleController = FindObjectOfType<PuzzleController>();
-        if (puzzleController != null)
-        {
-            puzzleController.SelectVertex(this);
-        }
-    }
-
-    public void Initialize(int id)
-    {
-        Vertex = new Vertex(id);
+        Vertex = new Vertex();
     }
 
     public void Select()
@@ -51,6 +42,4 @@ public class VertexController : MonoBehaviour
     {
 
     }
-
-    // Add any other necessary methods or functionality for VertexController
 }

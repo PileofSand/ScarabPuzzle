@@ -11,7 +11,6 @@ public class Graph
         Edges = new List<Edge>();
     }
 
-
     public void GenerateEdges(List<VertexController> vertexControllers)
     {
         int edgeID = 0;
@@ -42,28 +41,13 @@ public class Graph
         Vertices.Add(vertex);
     }
 
-    public void RemoveVertex(Vertex vertex)
-    {
-        Vertices.Remove(vertex);
-    }
-
     public void AddEdge(Edge edge)
     {
         Edges.Add(edge);
     }
 
-    public void RemoveEdge(Edge edge)
-    {
-        Edges.Remove(edge);
-    }
-
     public Edge GetEdge(Vertex vertex1, Vertex vertex2)
     {
         return Edges.Find(edge => edge.Connects(vertex1, vertex2));
-    }
-
-    public void Reset()
-    {
-        // Implement reset logic if necessary
     }
 }

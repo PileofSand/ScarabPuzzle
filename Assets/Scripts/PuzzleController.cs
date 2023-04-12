@@ -4,70 +4,64 @@ using UnityEngine.SceneManagement;
 
 public class PuzzleController : MonoBehaviour
 {
-    [SerializeField] private List<VertexController> vertexControllers;
-    [SerializeField] private List<EdgeController> edgeControllers;
-    [SerializeField] private Transform edgeParent;
+    [SerializeField] 
+    private List<VertexController> _vertexControllers;
+    [SerializeField]
+    private LineRenderer _lineRenderer;
+
+    private VertexController _selectedVertexController;
+    private int _currentIndex = 0;
+    private Vector3 _lastAddedPoint;
 
     public Graph Graph { get; private set; }
     public Path CurrentPath { get; private set; }
-    private VertexController selectedVertexController;
-    public GameObject edgePrefab; // Assign an EdgeController prefab in the Unity editor.
-
-    private void CreateEdgeControllers()
-    {
-        for (int i = 0; i < Graph.Edges.Count; i++)
-        {
-            Edge edge = Graph.Edges[i];
-            GameObject edgeInstance = Instantiate(edgePrefab);
-            EdgeController edgeController = edgeInstance.GetComponent<EdgeController>();
-            edgeController.Edge = edge;
-            edgeController.transform.parent = edgeParent;
-            edgeControllers.Add(edgeController);
-            // Set edgeInstance position and rotation based on connected vertices.
-            // ...
-        }
-    }
 
     private void Awake()
     {
         Graph = new Graph();
-        for (int i = 0; i < vertexControllers.Count; i++)
+        CurrentPath = new Path();
+
+        for (int i = 0; i < _vertexControllers.Count; i++)
         {
-            VertexController vertexController = vertexControllers[i];
+            VertexController vertexController = _vertexControllers[i];
             vertexController.Initialize();
             Graph.AddVertex(vertexController.Vertex);
         }
-
-        CurrentPath = new Path();
     }
 
     private void Start()
     {
-        Graph.GenerateEdges(vertexControllers);
-        CreateEdgeControllers();
+        Graph.GenerateEdges(_vertexControllers);
     }
 
     public void SelectVertex(VertexController vertexController)
     {
-        if (selectedVertexController == null)
+        if (_selectedVertexController == null)
         {
-            selectedVertexController = vertexController;
-            selectedVertexController.Select();
+            _selectedVertexController = vertexController;
+            _selectedVertexController.Select();
+            AddLinePoint(0, _selectedVertexController.transform.position);
             return;
         }
 
-        Edge edge = Graph.GetEdge(selectedVertexController.Vertex, vertexController.Vertex);
+        Edge edge = Graph.GetEdge(_selectedVertexController.Vertex, vertexController.Vertex);
 
         if (edge != null && !CurrentPath.Contains(edge))
         {
             CurrentPath.AddEdge(edge);
-            selectedVertexController.Deselect();
+            _selectedVertexController.Deselect();
             vertexController.Select();
-            selectedVertexController = vertexController;
+            _selectedVertexController = vertexController;
 
-            // Update visuals for edges
-           var edgeController = edgeControllers.Find(x => x.Edge == edge);
-            edgeController.UpdateVisuals();
+            if (_lastAddedPoint == edge.VertexAPosition)
+            {
+                AddLinePoint(_currentIndex, edge.VertexBPosition);
+            }
+            else
+            {
+                AddLinePoint(_currentIndex, edge.VertexAPosition);
+            }
+           
             // Check if the puzzle is solved
             if (IsPuzzleSolved())
             {
@@ -77,26 +71,12 @@ public class PuzzleController : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.R))
-        {
-            ReloadScene();
-        }
-    }
-
-    public void ReloadScene()
-    {
-        int currentSceneIndex = SceneManager.GetActiveScene().buildIndex;
-        SceneManager.LoadScene(currentSceneIndex);
-    }
-
     public void DeselectVertex()
     {
-        if (selectedVertexController != null)
+        if (_selectedVertexController != null)
         {
-            selectedVertexController.Deselect();
-            selectedVertexController = null;
+            _selectedVertexController.Deselect();
+            _selectedVertexController = null;
         }
     }
 
@@ -104,21 +84,26 @@ public class PuzzleController : MonoBehaviour
     {
         CurrentPath.Reset();
         DeselectVertex();
+        _lineRenderer.positionCount = 0;
+        _currentIndex = 0;
 
-        // Update visuals for edges
-        foreach (var edgeController in edgeControllers)
+        foreach (var vertex in _vertexControllers)
         {
-            edgeController.Reset();
+            vertex.Reset();
         }
+    }
 
-        foreach (var edgeController in edgeControllers)
-        {
-            edgeController.Reset();
-        }
+    private void AddLinePoint(int id,Vector3 position)
+    {
+        _lineRenderer.positionCount = id + 1;
+        _lineRenderer.SetPosition(id, position);
+        _currentIndex++;
+        _lastAddedPoint = position;
     }
 
     private bool IsPuzzleSolved()
     {
+        Debug.Log(CurrentPath.Edges.Count + " vs " + (Graph.Edges.Count - 1));
         return CurrentPath.Edges.Count == Graph.Edges.Count - 1;
     }
 }

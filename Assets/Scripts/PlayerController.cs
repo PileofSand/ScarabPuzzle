@@ -1,30 +1,32 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour
 {
     [SerializeField]
-    private float speed = 5f;
+    private float _speed = 5f;
+    [SerializeField, Range(0,1)]
+    private float _dotProductValue = 0.5f;
     [SerializeField]
-    private float mouseSensitivity = 2f;
+    private float _mouseSensitivity = 2f;
     [SerializeField]
-    private Camera playerCamera;
+    private Camera _playerCamera;
+    [SerializeField]
+    private List<PuzzleController> _puzzleControllers = new List<PuzzleController>();
 
-    private CharacterController characterController;
-    private PuzzleController puzzleController;
-
-    private float cameraRotationX = 0f;
+    private CharacterController _characterController;
+    private float _cameraRotationX = 0f;
+    private PuzzleController _activePuzzleController;
 
     private void Start()
     {
-        characterController = GetComponent<CharacterController>();
+        _characterController = GetComponent<CharacterController>();
 
-        if (playerCamera == null)
+        if (_playerCamera == null)
         {
-            playerCamera = Camera.main;
+            _playerCamera = Camera.main;
         }
-
-        puzzleController = FindObjectOfType<PuzzleController>();
 
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
@@ -35,6 +37,12 @@ public class PlayerController : MonoBehaviour
         HandleMovement();
         HandleMouseLook();
         HandleMouseInput();
+        GetActivePuzzleController();
+
+        if (Input.GetKeyDown(KeyCode.R))
+        {
+            _activePuzzleController.Reset();
+        }
     }
 
     private void HandleMovement()
@@ -45,44 +53,63 @@ public class PlayerController : MonoBehaviour
         Vector3 movementDirection = new Vector3(horizontal, 0, vertical).normalized;
 
         // Take the camera rotation into account
-        Vector3 cameraForward = playerCamera.transform.forward;
+        Vector3 cameraForward = _playerCamera.transform.forward;
         cameraForward.y = 0;
         cameraForward.Normalize();
-        Vector3 cameraRight = playerCamera.transform.right;
+        Vector3 cameraRight = _playerCamera.transform.right;
         cameraRight.y = 0;
         cameraRight.Normalize();
 
-        Vector3 movement = (cameraForward * vertical + cameraRight * horizontal) * speed * Time.deltaTime;
+        Vector3 movement = (cameraForward * vertical + cameraRight * horizontal) * _speed * Time.deltaTime;
 
         // Add gravity
         movement.y = Physics.gravity.y * Time.deltaTime;
 
-        characterController.Move(movement);
+        _characterController.Move(movement);
     }
 
     private void HandleMouseLook()
     {
-        float mouseX = Input.GetAxis("Mouse X") * mouseSensitivity;
-        float mouseY = Input.GetAxis("Mouse Y") * mouseSensitivity;
+        float mouseX = Input.GetAxis("Mouse X") * _mouseSensitivity;
+        float mouseY = Input.GetAxis("Mouse Y") * _mouseSensitivity;
 
-        cameraRotationX -= mouseY;
-        cameraRotationX = Mathf.Clamp(cameraRotationX, -90f, 90f);
+        _cameraRotationX -= mouseY;
+        _cameraRotationX = Mathf.Clamp(_cameraRotationX, -90f, 90f);
 
-        playerCamera.transform.localRotation = Quaternion.Euler(cameraRotationX, 0, 0);
+        _playerCamera.transform.localRotation = Quaternion.Euler(_cameraRotationX, 0, 0);
         transform.rotation = Quaternion.Euler(0, transform.eulerAngles.y + mouseX, 0);
+    }
+
+    private void GetActivePuzzleController()
+    {
+        foreach (var controller in _puzzleControllers)
+        {
+            if (IsPlayerFacingPuzzle(controller))
+            {
+                _activePuzzleController = controller;
+            }
+        }
+    }
+
+    private bool IsPlayerFacingPuzzle(PuzzleController puzzleController)
+    {
+        Vector3 playerToPuzzle = puzzleController.transform.position - transform.position;
+        float dotProduct = Vector3.Dot(transform.forward, playerToPuzzle.normalized);
+
+        return dotProduct > _dotProductValue;
     }
 
     private void HandleMouseInput()
     {
         if (Input.GetMouseButtonDown(0))
         {
-            Ray ray = playerCamera.ScreenPointToRay(Input.mousePosition);
+            Ray ray = _playerCamera.ScreenPointToRay(Input.mousePosition);
             if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 VertexController vertexController = hit.collider.GetComponent<VertexController>();
                 if (vertexController != null)
                 {
-                    puzzleController.SelectVertex(vertexController);
+                    _activePuzzleController.SelectVertex(vertexController);
                 }
             }
         }

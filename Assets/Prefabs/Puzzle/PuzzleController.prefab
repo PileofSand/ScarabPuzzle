@@ -2669,7 +2669,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -8128844913846357649, guid: 59e83eb2655493246ab30cae199c396a, type: 3}
       propertyPath: _neighbourVertices.Array.size
-      value: 5
+      value: 4
       objectReference: {fileID: 0}
     - target: {fileID: -8128844913846357649, guid: 59e83eb2655493246ab30cae199c396a, type: 3}
       propertyPath: neighbourVertices.Array.data[0]

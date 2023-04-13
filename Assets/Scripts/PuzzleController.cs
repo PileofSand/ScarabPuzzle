@@ -1,6 +1,6 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 public class PuzzleController : MonoBehaviour
 {
@@ -8,8 +8,11 @@ public class PuzzleController : MonoBehaviour
     private List<VertexController> _vertexControllers;
     [SerializeField]
     private LineRenderer _lineRenderer;
+    [SerializeField]
+    private float _lineMoveSpeed = 10f;
 
     private VertexController _selectedVertexController;
+
     private int _currentIndex = 0;
     private Vector3 _lastAddedPoint;
 
@@ -45,10 +48,11 @@ public class PuzzleController : MonoBehaviour
         }
 
         Edge edge = Graph.GetEdge(_selectedVertexController.Vertex, vertexController.Vertex);
-
         if (edge != null && !CurrentPath.Contains(edge))
         {
             CurrentPath.AddEdge(edge);
+            vertexController.Vertex.ConnectTo(_selectedVertexController.Vertex);
+            _selectedVertexController.Vertex.ConnectTo(vertexController.Vertex);
             _selectedVertexController.Deselect();
             vertexController.Select();
             _selectedVertexController = vertexController;
@@ -87,16 +91,17 @@ public class PuzzleController : MonoBehaviour
         _lineRenderer.positionCount = 0;
         _currentIndex = 0;
 
-        foreach (var vertex in _vertexControllers)
+        foreach (var vertexController in _vertexControllers)
         {
-            vertex.Reset();
+            vertexController.Reset();
+            vertexController.Vertex.Reset();
         }
     }
 
     private void AddLinePoint(int id,Vector3 position)
     {
         _lineRenderer.positionCount = id + 1;
-        _lineRenderer.SetPosition(id, position);
+        StartCoroutine(MoveLineRenderer(id, position));
         _currentIndex++;
         _lastAddedPoint = position;
     }
@@ -105,5 +110,27 @@ public class PuzzleController : MonoBehaviour
     {
         Debug.Log(CurrentPath.Edges.Count + " vs " + (Graph.Edges.Count - 1));
         return CurrentPath.Edges.Count == Graph.Edges.Count - 1;
+    }
+
+    private IEnumerator MoveLineRenderer(int id, Vector3 targetPosition)
+    {
+        if (id <= 0)
+        {
+            _lineRenderer.SetPosition(id, targetPosition);
+            yield break;
+        }
+
+        Vector3 startPosition = _lineRenderer.GetPosition(id - 1); 
+        Vector3 currentEndPosition = startPosition;
+
+        while (Vector3.Distance(currentEndPosition, targetPosition) > 0.01f)
+        {
+            currentEndPosition = Vector3.Lerp(currentEndPosition, targetPosition, _lineMoveSpeed * Time.deltaTime);
+            _lineRenderer.SetPosition(id, currentEndPosition);
+            yield return null;
+        }
+
+        // Set the final position to make sure it reaches the target
+        _lineRenderer.SetPosition(id, targetPosition);
     }
 }

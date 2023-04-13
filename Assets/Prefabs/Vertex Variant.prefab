@@ -10,7 +10,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: -8679921383154817045, guid: 79e55b6ebf6c68e4093a85828d03fb10, type: 3}
       propertyPath: m_RootOrder
-      value: 0
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 79e55b6ebf6c68e4093a85828d03fb10, type: 3}
       propertyPath: m_LocalPosition.x
@@ -88,9 +88,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 987696955298bcb47a6c345d69619ff5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  visitedMaterial: {fileID: 2100000, guid: 4d6a7989356dc8e4ba409de86e3a04fc, type: 2}
-  neighbourVertices: []
-  selectedMaterial: {fileID: 2100000, guid: c4caa20a1cf1b2d46903b7bbd437a553, type: 2}
+  _selectedMaterial: {fileID: 0}
+  _visitedMaterial: {fileID: 0}
+  _neighbourVertices: []
+  _moveDistance: 0.05
+  _speed: 0.5
 --- !u!135 &6096560389299843549
 SphereCollider:
   m_ObjectHideFlags: 0

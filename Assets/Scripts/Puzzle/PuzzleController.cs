@@ -132,7 +132,7 @@ namespace ScarabPuzzle
 
         private bool IsPuzzleSolved()
         {
-            return CurrentPath.Edges.Count == Graph.Edges.Count - 1;
+            return CurrentPath.Edges.Count == Graph.Edges.Count;
         }
 
         private IEnumerator MoveLineRenderer(int id, Vector3 targetPosition)
